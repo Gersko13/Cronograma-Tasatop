@@ -1,0 +1,210 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TASATOP | Cronograma de Inversión</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- jsPDF + autoTable (permitido por CDN) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img id="brandLogo" class="brand__logo" alt="TASATOP" crossorigin="anonymous"
+  src="https://tasatop.com.pe/wp-content/uploads/elementor/thumbs/logos-17-r320c27cra7m7te2fafiia4mrbqd3aqj7ifttvy33g.png"
+  onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='flex';" />
+
+<div id="logoFallback" style="display:none; align-items:center; justify-content:center; width:56px; height:56px; border-radius:12px; border:1px solid #e5e7eb; font-weight:900; color:#123f73; background:#fff;">
+  T
+</div>
+
+      <div class="brand__text">
+        <div class="brand__name">TASATOP</div>
+        <div class="brand__subtitle">Cronograma de Inversión</div>
+        <div class="brand__meta" id="generatedAt">Generado: —</div>
+      </div>
+    </div>
+    <div class="topbar__actions">
+      <button class="btn btn--ghost" id="btnClear" type="button" title="Limpiar">
+        Limpiar
+      </button>
+      <button class="btn btn--primary" id="btnGenerate" type="button" title="Generar cronograma">
+        Generar cronograma
+      </button>
+      <button class="btn btn--primary btn--pdf" id="btnPdf" type="button" title="Exportar PDF" disabled>
+        Exportar PDF
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="grid">
+      <div class="card">
+        <div class="card__header">
+          <h2 class="card__title">Datos de inversión</h2>
+          <p class="card__hint">Replica exacta de reglas VBA. Validaciones estrictas.</p>
+        </div>
+
+        <div class="alerts" id="alerts" aria-live="polite"></div>
+
+        <form id="form" class="form" autocomplete="off" novalidate>
+          <div class="form__row">
+            <div class="field">
+              <label for="fechaInicio">Fecha de inicio</label>
+              <input id="fechaInicio" name="fechaInicio" type="date" required />
+              <div class="field__error" id="err_fechaInicio"></div>
+            </div>
+
+            <div class="field">
+              <label for="monto">Monto</label>
+              <input id="monto" name="monto" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" required />
+              <div class="field__error" id="err_monto"></div>
+            </div>
+
+            <div class="field">
+              <label for="moneda">Moneda</label>
+              <select id="moneda" name="moneda" required>
+                <option value="">Selecciona</option>
+                <option value="S/">S/</option>
+                <option value="$">$</option>
+              </select>
+              <div class="field__error" id="err_moneda"></div>
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="tasaEA">Tasa efectiva anual (%)</label>
+              <input id="tasaEA" name="tasaEA" type="number" inputmode="decimal" step="0.0001" placeholder="0.00" required />
+              <div class="field__help">Equivale a B5 / 100 en VBA.</div>
+              <div class="field__error" id="err_tasaEA"></div>
+            </div>
+
+            <div class="field">
+              <label for="plazo">Plazo (meses)</label>
+              <input id="plazo" name="plazo" type="number" inputmode="numeric" min="1" step="1" placeholder="1" required />
+              <div class="field__error" id="err_plazo"></div>
+            </div>
+
+            <div class="field">
+              <label for="producto">Producto</label>
+              <select id="producto" name="producto" required>
+                <option value="">Selecciona</option>
+                <option value="IKB">IKB (día 15)</option>
+                <option value="ALI">ALI (día 28)</option>
+                <option value="PET">PET (día 10)</option>
+                <option value="M&L">M&L (día 20)</option>
+                <option value="OTRO">Otros (día 15)</option>
+              </select>
+              <div class="field__error" id="err_producto"></div>
+            </div>
+          </div>
+
+          <div class="form__row">
+            <div class="field">
+              <label for="freqInteres">Frecuencia de pago de intereses</label>
+              <select id="freqInteres" name="freqInteres" required>
+                <option value="">Selecciona</option>
+                <option>Mensual</option>
+                <option>Bimestral</option>
+                <option>Trimestral</option>
+                <option>Semestral</option>
+                <option>Anual</option>
+                <option>Al finalizar</option>
+              </select>
+              <div class="field__error" id="err_freqInteres"></div>
+            </div>
+
+            <div class="field">
+              <label for="freqCapital">Frecuencia de devolución de capital</label>
+              <select id="freqCapital" name="freqCapital" required>
+                <option value="">Selecciona</option>
+                <option>Mensual</option>
+                <option>Bimestral</option>
+                <option>Trimestral</option>
+                <option>Semestral</option>
+                <option>Anual</option>
+                <option>Al finalizar</option>
+              </select>
+              <div class="field__error" id="err_freqCapital"></div>
+            </div>
+
+            <div class="field">
+              <label for="primerPago">Opción primer pago (B10)</label>
+              <select id="primerPago" name="primerPago">
+                <option>Mes de inversión</option>
+                <option selected>Próximo mes</option>
+              </select>
+              <div class="field__help">Normaliza tildes/espacios igual que VBA.</div>
+              <div class="field__error" id="err_primerPago"></div>
+            </div>
+          </div>
+
+          <div class="form__footer">
+            <div class="pill">
+              <span class="pill__dot"></span>
+              <span class="pill__text">Mes 0 obligatorio (sin pago). Desde Mes 1: Fecha cronograma = Fecha de pago.</span>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <h2 class="card__title">Resumen</h2>
+          <p class="card__hint">Replica el cuadro VBA (TA, monto, producto, plazo, frecuencia, tipo tasa, devolución capital).</p>
+        </div>
+
+        <div class="summary" id="summary">
+          <div class="summary__empty">Genera el cronograma para ver el resumen.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card card--table">
+      <div class="card__header card__header--table">
+        <h2 class="card__title">Cronograma</h2>
+        <div class="card__right">
+          <div class="muted" id="rowCount">—</div>
+        </div>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table" id="table">
+          <thead>
+            <tr>
+              <th>Mes</th>
+              <th>Fecha de cronograma</th>
+              <th>Fecha de pago</th>
+              <th>Días</th>
+              <th>Monto base</th>
+              <th>Interés bruto</th>
+              <th>Impuesto 2da categ.</th>
+              <th>Interés a Depositar</th>
+              <th>Devolución Capital</th>
+              <th>Saldo Capital</th>
+              <th>Total a depositar</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="11" class="td-empty">Aún no hay datos. Completa el formulario y genera el cronograma.</td></tr>
+          </tbody>
+          <tfoot id="tfoot"></tfoot>
+        </table>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer__left">
+        <span class="badge">TASATOP</span>
+        <span class="muted">Cronograma replicado 1:1 del VBA (fechas, redondeos, reglas de pago).</span>
+      </div>
+      <div class="footer__right muted" id="version">v1.0</div>
+    </footer>
+  </main>
+</body>
+</html>
